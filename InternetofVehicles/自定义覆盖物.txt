@@ -1,0 +1,599 @@
+package com.sqf.baidumaptest;
+
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+import android.os.Bundle;
+import android.os.Environment;
+import android.util.Log;
+import android.view.Gravity;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.baidu.location.BDLocation;
+import com.baidu.location.BDLocationListener;
+import com.baidu.location.LocationClient;
+import com.baidu.location.LocationClientOption;
+import com.baidu.mapapi.SDKInitializer;
+import com.baidu.mapapi.map.BaiduMap;
+import com.baidu.mapapi.map.BitmapDescriptor;
+import com.baidu.mapapi.map.BitmapDescriptorFactory;
+import com.baidu.mapapi.map.InfoWindow;
+import com.baidu.mapapi.map.MapPoi;
+import com.baidu.mapapi.map.MapStatusUpdate;
+import com.baidu.mapapi.map.MapStatusUpdateFactory;
+import com.baidu.mapapi.map.MapView;
+import com.baidu.mapapi.map.Marker;
+import com.baidu.mapapi.map.MarkerOptions;
+import com.baidu.mapapi.map.MyLocationConfiguration;
+import com.baidu.mapapi.map.MyLocationData;
+import com.baidu.mapapi.map.OverlayOptions;
+import com.baidu.mapapi.model.LatLng;
+import com.baidu.navisdk.adapter.BNRoutePlanNode;
+import com.baidu.navisdk.adapter.BaiduNaviManager;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+public class MainActivity extends Activity implements View.OnClickListener{
+
+    private MapView mMapView = null;
+    private BaiduMap mBaiduMap;
+
+    private Context mComtext;
+
+    //定位相关
+    private LocationClient mLocationClient;
+    private MyLocationListener mLocationListener;
+    private boolean isFirstIn = true;
+    private double mLatitude;
+    private double mLongtitude;
+
+    //自定义定位图标
+    private BitmapDescriptor mIconLocation;
+    private MyOrientionListener myOrientionListener;
+    private float mCurrentX;
+
+    //模式切换的对象
+    private MyLocationConfiguration.LocationMode mLocationMode;
+
+    //覆盖物相关
+    private  BitmapDescriptor mMarker;  //自定义覆盖物图标
+    private RelativeLayout mMarkerLy;
+
+    //导航相关
+    private LatLng mLastLocationData;  //导航的起点
+    private LatLng mDestLocationData; //导航的目的地
+
+    private Button btn_location;
+    private Button btn_mock_navigation;
+    private Button btn_real_navigation;
+
+    private String mSDCardPath = null;
+    private static final String APP_FOLDER_NAME = "SQF_navigation";//在sd卡创建一个名为SQF_navigation的文件
+
+    public static final String ROUTE_PLAN_NODE = "routePlanNode";
+
+
+//-----------------------------------------------------------------------------------------------
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        //在使用SDK各组件之前初始化context信息，传入ApplicationContext
+        //注意该方法要再setContentView方法之前实现
+        SDKInitializer.initialize(getApplicationContext());
+        requestWindowFeature(getWindow().FEATURE_NO_TITLE);//去掉标题栏
+        setContentView(R.layout.activity_main);
+        mComtext = this;
+
+        initView();
+        //初始化定位
+        initLocation();
+        //初始化覆盖物相关
+        initMarker();
+
+        //覆盖物点击事件
+        mBaiduMap.setOnMarkerClickListener(new BaiduMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+
+                //得到marker里的bunder对象
+                Bundle bundle = marker.getExtraInfo();
+                Info info = (Info)bundle.getSerializable("info");
+
+                //得到布局里的子控件
+                ImageView imageView = (ImageView)mMarkerLy.findViewById(R.id.id_info_img);
+                TextView tv_name = (TextView)mMarkerLy.findViewById(R.id.id_info_name);
+                TextView tv_distance = (TextView)mMarkerLy.findViewById(R.id.id_info_distance);
+                TextView tv_zan = (TextView)mMarkerLy.findViewById(R.id.in_info_zan);
+
+                //为控件赋值
+                imageView.setImageResource(info.getImgId());
+                tv_name.setText(info.getName());
+                tv_distance.setText(info.getDistance());
+                tv_zan.setText(info.getZan()+"");
+
+                //点击覆盖物，显示覆盖物上方的文本
+                InfoWindow infoWindow;
+                TextView textView = new TextView(mComtext);
+                textView.setBackgroundResource(R.drawable.popup);
+                textView.setPadding(30,20,30,50);
+                textView.setText(info.getName());
+                textView.setGravity(Gravity.CENTER);
+
+                final LatLng latLng = marker.getPosition();
+                //将地图上的经纬度转化屏幕上实际的点，即xy坐标
+                android.graphics.Point point =  mBaiduMap.getProjection().toScreenLocation(latLng);
+                //让point点在y轴方向下移47
+                point.y = point.y -100 ;
+                //将在屏幕上下移47后的点转化为地图上的点
+                LatLng latLng_map = mBaiduMap.getProjection().fromScreenLocation(point);
+
+                //实例化InfoWindow
+                infoWindow = new InfoWindow(textView,latLng_map,CONTEXT_IGNORE_SECURITY);
+                //显示InfoWindow,即覆盖物上方的文字
+                mBaiduMap.showInfoWindow(infoWindow);
+
+                //显示布局
+                mMarkerLy.setVisibility(View.VISIBLE);
+                return true;
+            }
+        });
+
+        //点击地图别的地方，隐藏掉弹出的覆盖物相信信息的布局
+        mBaiduMap.setOnMapClickListener(new BaiduMap.OnMapClickListener() {
+            @Override
+            public void onMapClick(LatLng latLng) {
+                //隐藏掉弹出的覆盖物详细信息的布局
+                mMarkerLy.setVisibility(View.GONE);
+                //隐藏InfoWindow
+                mBaiduMap.hideInfoWindow();
+            }
+
+            @Override
+            public boolean onMapPoiClick(MapPoi mapPoi) {
+                return false;
+            }
+        });
+
+       /** 导航相关
+        *  如果在手机sd卡下一级目录创建一个名为APP_FOLDER_NAME = "SQF_navigation"的文件成功
+        *  则，初始化导航相关的API
+        * */
+        if (initDirs()) {
+            initNavi();//初始化导航相关的API
+        }
+
+    }
+
+    //得到sd卡的路径
+    private String getSdcardDir() {
+        //判断手机是否已插入sd卡，且具有读写sd卡的能力
+        if (Environment.getExternalStorageState().equalsIgnoreCase(Environment.MEDIA_MOUNTED)) {
+            //得到sd路径
+            return Environment.getExternalStorageDirectory().toString();
+        }
+        return null;
+    }
+
+   /**
+    * 导航相关
+    * 在sd卡下一级目录创建名为APP_FOLDER_NAME = "SQF_navigation"的文件
+    * */
+    private boolean initDirs() {
+        mSDCardPath = getSdcardDir();
+        if (mSDCardPath == null) {
+            return false;
+        }
+        File f = new File(mSDCardPath, APP_FOLDER_NAME);
+        if (!f.exists()) {
+            try {
+                f.mkdirs();
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
+        return true;
+    }
+
+
+    String authinfo = null;
+
+    /**
+     * 导航相关
+     * 初始化导航相关的API
+     * */
+    private void initNavi() {
+       // BaiduNaviManager.getInstance().setNativeLibraryPath
+        BaiduNaviManager.getInstance().init(this, mSDCardPath, APP_FOLDER_NAME, new BaiduNaviManager.NaviInitListener() {
+            @Override
+            public void onAuthResult(int status, String msg) {
+                if (0 == status) {
+                    authinfo = "key校验成功!";
+                } else {
+                    authinfo = "key校验失败, " + msg;
+                }
+                //这里采用的是 runOnUiThread(new Runnable()）更新UI ,效果同Hander + Thread
+                MainActivity.this.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(MainActivity.this, authinfo, Toast.LENGTH_LONG).show();
+                    }
+                });
+            }
+            public void initSuccess() {
+                Toast.makeText(MainActivity.this, "百度导航引擎初始化成功", Toast.LENGTH_SHORT).show();
+            }
+            public void initStart() {
+                Toast.makeText(MainActivity.this, "百度导航引擎初始化开始", Toast.LENGTH_SHORT).show();
+            }
+            public void initFailed() {
+                Toast.makeText(MainActivity.this, "百度导航引擎初始化失败", Toast.LENGTH_SHORT).show();
+            }
+        },  null);
+    }
+
+
+
+    //初始化覆盖物相关
+    private void initMarker() {
+        //指定覆盖物的图标
+        mMarker = BitmapDescriptorFactory.fromResource(R.drawable.overlay);
+        //实例化点击覆盖物弹出的详细信息的布局
+        mMarkerLy = (RelativeLayout)findViewById(R.id.id_marker_ly);
+    }
+
+    //初始化定位
+    private void initLocation() {
+
+        //默认为普通模式
+        mLocationMode = MyLocationConfiguration.LocationMode.NORMAL;
+
+        mLocationClient = new LocationClient(this);
+        mLocationListener = new MyLocationListener();
+
+        //注册定位监听器，定位完成后触发监听器
+        mLocationClient.registerLocationListener(mLocationListener);
+
+        LocationClientOption option = new LocationClientOption();
+        //设置返回的定位结果坐标系
+        option.setCoorType("bd09ll");//默认为gcj02，而bd09ll定位最精确
+        //使返回的定位结果包含地址信息,注意吐司弹出对话框得到的地址
+        option.setIsNeedAddress(true);
+        //设置打开gps
+        option.setOpenGps(true);
+        //每隔1s进行一次请求
+        option.setScanSpan(1000);
+
+        mLocationClient.setLocOption(option);
+
+        //指定定位的图标
+        mIconLocation = BitmapDescriptorFactory.fromResource(R.drawable.daohang);
+
+        //实例化自定义传感器的监听器
+        myOrientionListener = new MyOrientionListener(mComtext);
+        //手机方向发生改变时触发
+        myOrientionListener.setmOnOrientationListener(new MyOrientionListener.OnOrientationListener() {
+            @Override
+            //将手机改变后的方向实时传给当前方向
+            public void onOrientationChanged(float x) {
+                mCurrentX = x;
+            }
+        });
+
+    }
+
+    private void initView() {
+        mMapView = (MapView)findViewById(R.id.bmapView);
+        mBaiduMap = mMapView.getMap();
+        //使第一次进入地图的显示比例为500m,默认是显示比例为5公里
+        MapStatusUpdate msu = MapStatusUpdateFactory.zoomTo(15.0f);
+        mBaiduMap.setMapStatus(msu);
+
+        btn_location = (Button)findViewById(R.id.btn_location);
+        btn_mock_navigation = (Button)findViewById(R.id.btn_mock_navigation);
+        btn_real_navigation = (Button)findViewById(R.id.btn_real_navigation);
+        //按钮点击事件
+        btn_location.setOnClickListener(this);
+        btn_mock_navigation.setOnClickListener(this);
+        btn_real_navigation.setOnClickListener(this);
+
+        //设置长按事件得到导航终点
+        mBaiduMap.setOnMapLongClickListener(new BaiduMap.OnMapLongClickListener() {
+            @Override
+            public void onMapLongClick(LatLng latLng) {
+                //将长按点的经纬度给导航的终点mDestLocationData
+                mDestLocationData = latLng;
+                //为导航终点设置一个图标
+                addDestInfoOverlay(latLng);
+            }
+
+        });
+    }
+
+    //长按 为导航终点设置一个图标
+    private void addDestInfoOverlay(LatLng latLng) {
+        mBaiduMap.clear();//清楚overlay
+        OverlayOptions options = new MarkerOptions()
+                .position(latLng)
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_end))
+                .zIndex(5);
+        mBaiduMap.addOverlay(options);
+    }
+
+
+    //上下文菜单
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        //加载上下文菜单
+        getMenuInflater().inflate(R.menu.menu,menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    //上下文菜单绑定事件
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()){
+            case R.id.map_common://普通地图
+                mBaiduMap.setMapType(BaiduMap.MAP_TYPE_NORMAL);
+                break;
+            case R.id.map_site://卫星地图
+                mBaiduMap.setMapType(BaiduMap.MAP_TYPE_SATELLITE);
+                break;
+            case R.id.map_traffic://实时交通
+                if (mBaiduMap.isTrafficEnabled()){
+                    mBaiduMap.setTrafficEnabled(false);
+                    item.setTitle("实时交通off");
+                }else{
+                    mBaiduMap.setTrafficEnabled(true);
+                    item.setTitle("实时交通on");
+                }
+                break;
+
+            case R.id.myLocation://回到我的位置
+                mBaiduMap.clear();//清除地图上的图层，如覆盖物等
+                LatLng latLng =new LatLng(mLatitude,mLongtitude);
+                MapStatusUpdate msu = MapStatusUpdateFactory.newLatLng(latLng);
+                //以动画方式更新地图状态
+                mBaiduMap.animateMapStatus(msu);
+                break;
+
+            case R.id.map_mode_common://普通模式
+                mLocationMode = MyLocationConfiguration.LocationMode.NORMAL;
+                break;
+            case R.id.map_mode_compass://罗盘模式
+                mLocationMode = MyLocationConfiguration.LocationMode.COMPASS;
+                break;
+            case R.id.map_mode_follow://跟随模式
+                mLocationMode = MyLocationConfiguration.LocationMode.FOLLOWING;
+                break;
+
+            case R.id.add_overlay: //添加覆盖物
+                addOverlays(Info.infoList);
+                break;
+            default:
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    //添加覆盖物,正常infoList是从服务器获取的json数据解析得到
+    private void addOverlays(List<Info> infoList) {
+        //清除地图上的一些图层
+        mBaiduMap.clear();
+        LatLng latLng = null;
+        Marker marker = null;    //标签对象
+        OverlayOptions options; //覆盖物选项对象
+        //遍历infoList集合,将infoList集合里的数据和经纬度、覆盖物图标等信息序列化后封装到marker里，
+        // 点击覆盖物时反序列化取出
+        for(Info info:infoList){
+            //得到经纬度对象
+            latLng = new LatLng(info.getLatitude(),info.getLongitude());
+            //得到图标
+            options = new MarkerOptions()
+                    .position(latLng) //经纬度
+                    .icon(mMarker) //覆盖物图标
+                    .zIndex(5); //指定图层的叠层位置，值越大越靠上层
+            //实例化Marker
+            marker = (Marker)mBaiduMap.addOverlay(options);
+            Bundle bundle = new Bundle();
+            bundle.putSerializable("info",info);
+            //向marker里封装数据
+            marker.setExtraInfo(bundle);
+        }
+        //设置点击添加覆盖物按钮时，即使地图在别处，也马上回到覆盖物所在点
+        MapStatusUpdate msu = MapStatusUpdateFactory.newLatLng(latLng);
+        mBaiduMap.setMapStatus(msu);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        //在activity执行onDestroy时执行mMapView.onDestroy()，实现地图生命周期管理
+        mMapView.onDestroy();
+    }
+    @Override
+    protected void onResume() {
+        super.onResume();
+        //在activity执行onResume时执行mMapView. onResume ()，实现地图生命周期管理
+        mMapView.onResume();
+    }
+    @Override
+    protected void onPause() {
+        super.onPause();
+        //在activity执行onPause时执行mMapView. onPause ()，实现地图生命周期管理
+        mMapView.onPause();
+    }
+    @Override
+    protected void onStart() {
+        super.onStart();
+        //开启定位 （记得在manifests里添加service）
+        mBaiduMap.setMyLocationEnabled(true);
+        if(!mLocationClient.isStarted()){
+            mLocationClient.start();
+        }
+        //开启方向传感器监听
+        myOrientionListener.startListen();
+    }
+    //停止定位
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mBaiduMap.setMyLocationEnabled(false);
+        mLocationClient.stop();
+        //停止方向传感器监听
+        myOrientionListener.stopListen();
+    }
+
+    @Override//按钮的点击事件
+    public void onClick(View view) {
+        switch (view.getId()){
+            case R.id.btn_location: //我的位置
+                if (mLastLocationData != null){
+                    mBaiduMap.clear();
+                    MapStatusUpdate msu = MapStatusUpdateFactory.newLatLng(mLastLocationData);
+                    mBaiduMap.animateMapStatus(msu);
+                }
+                break;
+            case R.id.btn_mock_navigation: //模拟导航
+                if (mDestLocationData == null){
+                    Toast.makeText(mComtext, "您还未指定终点哦", Toast.LENGTH_SHORT).show();
+                    return;
+                }else{ //调用导航的方法
+                    routeplanToNavi(false);
+                }
+
+                break;
+            case R.id.btn_real_navigation: //真实导航
+                if (mDestLocationData == null){
+                    Toast.makeText(mComtext, "您还未指定终点哦", Toast.LENGTH_SHORT).show();
+                    return;
+                }else{ //调用导航的方法
+                    routeplanToNavi(true);
+                }
+                break;
+            default:
+                break;
+        }
+    }
+
+    /**
+    *  导航
+    * */
+    private void routeplanToNavi(boolean notMock) {
+        //坐标类型
+        BNRoutePlanNode.CoordinateType coType = BNRoutePlanNode.CoordinateType.GCJ02;
+
+        BNRoutePlanNode sNode = null; //起点
+        BNRoutePlanNode eNode = null; //终点
+
+        //将sNode、eNode的bd09ll的坐标类型转化为GCJ02
+        BDLocation mLastBDLocation = bdToGCJ(mLastLocationData);
+        BDLocation mDestBDLocation = bdToGCJ(mDestLocationData);
+
+        sNode =  new BNRoutePlanNode(mLastBDLocation.getLongitude(),
+                mLastBDLocation.getLatitude(),"我的地点",null,coType);
+        eNode =  new BNRoutePlanNode(mDestBDLocation.getLongitude(),
+                mDestBDLocation.getLatitude(),"目标地点",null,coType);
+
+        if (sNode != null && eNode != null) {
+            List<BNRoutePlanNode> list = new ArrayList<BNRoutePlanNode>();
+            list.add(sNode);
+            list.add(eNode);
+            //开始导航，第四个参数为true表示真实导航，false表示模拟导航
+            BaiduNaviManager.getInstance().launchNavigator(this, list, 1, notMock, new DemoRoutePlanListener(sNode));
+        }
+    }
+
+
+    //将bd09ll的坐标类型转化为GCJ02
+    private BDLocation bdToGCJ(LatLng latLng){
+        //将LatLng转为BDLocation
+        BDLocation bdLocation = new BDLocation();
+        bdLocation.setLatitude(latLng.latitude);
+        bdLocation.setLongitude(latLng.longitude);
+        return LocationClient.getBDLocationInCoorType(bdLocation,BDLocation.BDLOCATION_BD09LL_TO_GCJ02);
+    }
+
+
+    //自定义监听器类实现
+    public class DemoRoutePlanListener implements BaiduNaviManager.RoutePlanListener {
+
+        private BNRoutePlanNode mBNRoutePlanNode = null;
+        //构造器传入起点
+        public DemoRoutePlanListener(BNRoutePlanNode node) {
+            mBNRoutePlanNode = node;
+        }
+        @Override
+        public void onJumpToNavigator() {
+			/**
+			 * 设置途径点以及resetEndNode会回调该接口
+			 */
+            /*for (Activity ac : activityList) {
+                if (ac.getClass().getName().endsWith("BNDemoGuideActivity")) {
+                    return;
+                }
+            }*/
+            Intent intent = new Intent(MainActivity.this, BNDemoGuideActivity.class);
+            Bundle bundle = new Bundle();
+            bundle.putSerializable(ROUTE_PLAN_NODE, (BNRoutePlanNode) mBNRoutePlanNode);
+            intent.putExtras(bundle);
+            startActivity(intent);
+        }
+
+        @Override
+        public void onRoutePlanFailed() {
+            // TODO Auto-generated method stub
+            Toast.makeText(MainActivity.this, "导航失败", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    //定位相关
+    private class MyLocationListener implements BDLocationListener {
+        //定位成功后回调该方法
+        @Override
+        public void onReceiveLocation(BDLocation bdLocation) {
+            MyLocationData data = new MyLocationData.Builder()//
+                    .accuracy(bdLocation.getRadius())//精度，半径单位
+                    .latitude(bdLocation.getLatitude())//得到纬度
+                    .longitude(bdLocation.getLongitude())//得到经度
+                    //定位完成后，对图标方向设置
+                    .direction(mCurrentX)//
+                    .build();
+            mBaiduMap.setMyLocationData(data);
+
+            //设置定位显示的图标
+            MyLocationConfiguration config =
+                    new MyLocationConfiguration(mLocationMode,true,mIconLocation);
+            mBaiduMap.setMyLocationConfigeration(config);
+
+            mLatitude = bdLocation.getLatitude();
+            mLongtitude = bdLocation.getLongitude();
+
+            //将用户定位的位置设置为地图中心
+            LatLng latLng = new LatLng(mLatitude, mLongtitude);
+            mLastLocationData = latLng;
+
+            if(isFirstIn) {
+                isFirstIn = false;
+                MapStatusUpdate msu = MapStatusUpdateFactory.newLatLng(latLng);
+                //以动画方式更新地图状态
+                mBaiduMap.animateMapStatus(msu);
+
+                Log.e("88", "精度为：" + bdLocation.getLongitude() + "，维度为" + bdLocation.getLatitude());
+                Log.e("88", "当前位置：" + bdLocation.getAddrStr());
+                //前面必须写option.setIsNeedAddress(true)，不然bdLocation.getAddrStr()得不到地址
+            }
+
+        }
+    }
+}

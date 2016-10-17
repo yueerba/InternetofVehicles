@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#f46444"
+    android:orientation="vertical"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin">
+
+    <TextView
+        android:padding="5dp"
+        android:textSize="20sp"
+        android:textColor="#ffffff"
+        android:layout_margin="10dp"
+        android:id="@+id/Dtime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:padding="5dp"
+        android:textSize="20sp"
+        android:textColor="#ffffff"
+        android:layout_margin="10dp"
+        android:id="@+id/Daddress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:padding="5dp"
+        android:textSize="20sp"
+        android:textColor="#ffffff"
+        android:layout_margin="10dp"
+        android:id="@+id/Dtype"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:padding="5dp"
+        android:textSize="20sp"
+        android:textColor="#ffffff"
+        android:layout_margin="10dp"
+        android:id="@+id/Dprice"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:padding="5dp"
+        android:textSize="20sp"
+        android:textColor="#ffffff"
+        android:layout_margin="10dp"
+        android:id="@+id/Damount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:padding="5dp"
+        android:textSize="20sp"
+        android:textColor="#ffffff"
+        android:layout_margin="10dp"
+        android:id="@+id/Dtotalprice"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:padding="5dp"
+        android:textSize="20sp"
+        android:textColor="#ffffff"
+        android:layout_margin="10dp"
+        android:id="@+id/Dstatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:padding="5dp"
+        android:textSize="20sp"
+        android:textColor="#ffffff"
+        android:layout_margin="10dp"
+        android:id="@+id/Dusername"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+</LinearLayout>

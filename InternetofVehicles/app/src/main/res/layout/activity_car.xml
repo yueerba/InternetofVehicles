@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/activity_car"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:background="@drawable/bjhui"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:orientation="horizontal">
+
+        <Button
+            android:textColor="#ffffff"
+            android:id="@+id/ShaoMiao"
+            android:layout_width="120dp"
+            android:layout_height="60dp"
+            android:layout_marginLeft="240dp"
+            android:text="扫描二维码" />
+    </LinearLayout>
+
+    <ListView
+        android:id="@+id/carListView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"></ListView>
+</LinearLayout>

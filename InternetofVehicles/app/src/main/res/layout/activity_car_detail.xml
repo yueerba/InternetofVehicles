@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/activity_car"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_gravity="center"
+    android:orientation="vertical"
+   >
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="50dp">
+
+        <TextView
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:text="品牌:"
+            android:textSize="20sp"/>
+
+        <TextView
+            android:id="@+id/DCarPingPai"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:text="POR"
+            android:textSize="20sp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal">
+
+        <TextView
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:text="车型:"
+            android:textSize="20sp"/>
+
+        <TextView
+            android:id="@+id/DCarCheXing"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:text="911"
+            android:textSize="20sp"/>
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal">
+
+        <TextView
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:text="车牌:"
+            android:textSize="20sp"/>
+
+        <TextView
+            android:id="@+id/DCarChePai"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:text="鄂D3638"
+            android:textSize="20sp"/>
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal">
+
+        <TextView
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:text="油箱容量:"
+            android:textSize="20sp"/>
+
+        <TextView
+            android:id="@+id/DCarYouXiang"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:text="60.0"
+            android:textSize="20sp"/>
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal">
+
+        <TextView
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:text="发动机号:"
+            android:textSize="20sp"/>
+
+        <TextView
+            android:id="@+id/DCarFaDongJiHao"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:text="12345667890"
+            android:textSize="20sp"/>
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal">
+
+        <TextView
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:text="车身级别:"
+            android:textSize="20sp"/>
+
+        <TextView
+            android:id="@+id/DCarJiBie"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:text="中型车"
+            android:textSize="20sp"/>
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal">
+
+        <TextView
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:text="里程数:"
+            android:textSize="20sp"/>
+
+        <TextView
+            android:id="@+id/DCarLiChengShu"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:text="50000.0"
+            android:textSize="20sp"/>
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal">
+
+        <TextView
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:text="发动机状态:"
+            android:textSize="20sp"/>
+
+        <TextView
+            android:id="@+id/DCarFZT"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:text="YES"
+            android:textSize="20sp"/>
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal">
+
+        <TextView
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:text="变速箱状态:"
+            android:textSize="20sp"/>
+
+        <TextView
+            android:id="@+id/DCarBSZT"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:text="YES"
+            android:textSize="20sp"/>
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal">
+
+        <TextView
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:text="车灯状态:"
+            android:textSize="20sp"/>
+
+        <TextView
+            android:id="@+id/DCarCDZT"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:text="YES"
+            android:textSize="20sp"/>
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal">
+
+        <TextView
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:text="剩余油量:"
+            android:textSize="20sp"/>
+
+        <TextView
+            android:id="@+id/DCarShengYuYouliang"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:text="30.0"
+            android:textSize="20sp"/>
+    </LinearLayout>
+</LinearLayout>

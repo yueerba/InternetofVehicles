@@ -1,0 +1,53 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center_horizontal"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="240dp"
+        android:layout_height="wrap_content">
+        <TextView
+            android:id="@+id/currentTv"
+            android:layout_marginTop="30dp"
+            android:layout_width="40dp"
+            android:layout_height="wrap_content" />
+        <SeekBar
+            android:layout_marginTop="30dp"
+            android:id="@+id/beFastBar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="160dp"
+            android:layout_height="wrap_content"
+            android:indeterminate="false" />
+        <TextView
+            android:id="@+id/durationTv"
+            android:layout_marginTop="30dp"
+            android:layout_width="40dp"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="240dp"
+        android:gravity="center"
+        android:layout_height="wrap_content">
+        <ImageView
+            android:src="@drawable/back"
+            android:id="@+id/shangyiqu"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:onClick="shangYiQu"/>
+        <ImageView
+            android:src="@drawable/pause"
+            android:id="@+id/baoFangImg"
+            android:layout_width="50dp"
+            android:layout_height="50dp" />
+        <ImageView
+            android:src="@drawable/next"
+            android:id="@+id/xiayiqu"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:onClick="xiaYiQu"/>
+    </LinearLayout>
+
+</LinearLayout>

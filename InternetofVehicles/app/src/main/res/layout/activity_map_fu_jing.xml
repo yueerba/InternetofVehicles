@@ -1,0 +1,53 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+               android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" >
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:id="@+id/Li"
+        android:layout_gravity="center_horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <AutoCompleteTextView
+            android:layout_margin="20dp"
+            android:id="@+id/searchkey"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="5"
+            android:hint="请输入搜索项" />
+        <Button
+            android:onClick="onssBt"
+            android:background="#3444eb"
+            android:layout_margin="20dp"
+            android:layout_weight="1"
+            android:id="@+id/ssBt"
+            android:text="搜索"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
+    <LinearLayout
+        android:layout_marginTop="80dp"
+        android:orientation="vertical"
+        android:id="@+id/Li2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <Button
+            android:onClick="fuJinJiaYou"
+            android:background="#3444eb"
+            android:text="附近加油站"
+            android:layout_margin="40dp"
+            android:id="@+id/fuJinJYBt"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"/>
+        <Button
+            android:onClick="fuJinTingChe"
+            android:background="#3444eb"
+            android:text="附近停车场"
+            android:layout_margin="40dp"
+            android:id="@+id/fuJinTCBt"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"/>
+    </LinearLayout>
+
+</LinearLayout>
